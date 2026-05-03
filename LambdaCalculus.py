@@ -23,12 +23,12 @@ class Apply:
     
 def substitute(expr, var, value):
     if isinstance(expr, Var):
-        if expr.name == var.name:
+        if expr.name == var:
             return value
         else:
             return expr
     elif isinstance(expr, Lambda):
-        if expr.param.name == var.name:
+        if expr.param == var:
             return expr  # No substitution inside the body
         else:
             new_body = substitute(expr.body, var, value)
@@ -44,8 +44,9 @@ def beta_reduce(expr):
     if isinstance(expr, Apply):
         if isinstance(expr.func, Lambda):
             return substitute(expr.func.body, expr.func.param, expr.arg)
-        
         return Apply(beta_reduce(expr.func), beta_reduce(expr.arg))
+    elif isinstance(expr, Lambda):
+        return Lambda(expr.param, beta_reduce(expr.body))
     return expr
 
 def evaluate(expr, steps=10):
@@ -62,8 +63,12 @@ def evaluate(expr, steps=10):
     print(f"Step{i + 1 }:", expr)
     return expr
 
-expr = Apply (
-    Lambda("x", Var("x")),
-    Var("y")
+expr = Apply(
+    Lambda("f", Lambda("x", Apply(Var("f"), Apply(Var("f"), Var("x"))))),
+    Lambda("y", Var("y"))
 )
+# expr = Apply(
+#     Lambda("x", Apply(Var("x"), Var("x"))),
+#     Lambda("y", Var("y"))
+# )
 evaluate(expr)
